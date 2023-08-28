@@ -1,4 +1,5 @@
-from definition_class import ActiveSkill, EffectDizzy
+from EffectList import EffectDizzy
+from definition_class import ActiveSkill
 from definition_class.Skill import SkillVM, TargetType
 
 
