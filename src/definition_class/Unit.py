@@ -14,8 +14,8 @@ class UnitInfo:
     hp_limit: int = 0
     sp_limit: int = 0
     level: int = 1
-    speed: int = 0
-    attack: int = 0
+    ad_attack: int = 0
+    ap_attack: int = 0
     defend: int = 0
     status: list = field(default_factory=list)
     skills: list = field(default_factory=list)
@@ -35,9 +35,9 @@ class Unit(ABC):
         self.hp = info.hp_limit
         self.sp = info.sp_limit
         self.status = info.status
-        self.attack = info.attack
+        self.ad_attack = info.ad_attack
+        self.ap_attack = info.ap_attack
         self.defend = info.defend
-        self.speed = info.speed
         self.skills = info.skills
         self.passive = info.passive
         self.is_alive = True

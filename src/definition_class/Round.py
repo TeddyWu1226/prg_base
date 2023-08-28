@@ -3,8 +3,9 @@ from Setting import LANGUAGE
 
 
 class Round:
-    def __init__(self, _type):
+    def __init__(self, _type: Enum, enum_name):
         self.type = _type.value
+        self.enum_name = enum_name
 
     def __repr__(self):
         return self.type
@@ -21,7 +22,7 @@ class Round:
 
     @property
     def name(self):
-        return globals()[f'FIGHT_ROUND_NAME_{LANGUAGE}'][self.type]
+        return globals()[f'{self.enum_name}_{LANGUAGE}'][self.type]
 
 
 class FightRoundEnum(Enum):
@@ -30,6 +31,10 @@ class FightRoundEnum(Enum):
     EnemyRound = 2
     Connect = 3
     End = 4
+
+
+class CreateHeroRoundEnum(Enum):
+    Create = 0
 
 
 FIGHT_ROUND_NAME_CN = {
@@ -48,4 +53,8 @@ FIGHT_ROUND_NAME_EN = {
     3: 'AfterFight',
     4: 'FightEnd'
 
+}
+
+CREATE_HERO_ROUND_NAME_CN = {
+    0: '創造英雄階段'
 }
