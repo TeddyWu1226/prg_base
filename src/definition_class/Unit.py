@@ -20,6 +20,7 @@ class UnitInfo:
     status: list = field(default_factory=list)
     skills: list = field(default_factory=list)
     passive: list = field(default_factory=list)
+    default_action_point: int = 1
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -40,6 +41,9 @@ class Unit(ABC):
         self.skills = info.skills
         self.passive = info.passive
         self.is_alive = True
+        self.default_action_point = info.default_action_point
+        self.action_point = info.default_action_point
+        self.is_stop = False
 
     def __getitem__(self, key):
         return self.info[key]
@@ -48,12 +52,27 @@ class Unit(ABC):
         self.skills.append(skill)
 
     def __getattr__(self, key):
+        if self.is_stop:
+            print(f'{self.name} 無法行動')
+            return NoneSkill()
+        if self.action_point <= 0:
+            print(f'{self.name} 行動值耗盡，無法行動')
+            return NoneSkill()
         if not self.is_alive:
             return NoneSkill()
         if key not in self.skills:
             print(f'{self.name} 沒有 {key} 技能')
             return NoneSkill()
-        return self.working_skill(self.skills[self.skills.index(key)])
+        return self.action.working_skill(self.skills[self.skills.index(key)])
+
+    @property
+    def action(self):
+        """
+        動作判定，消耗行動值
+        :return:
+        """
+        self.reduce_action_point()
+        return self
 
     def working_skill(self, skill: ActiveSkill):
         skill.setSpeller(self)
@@ -80,6 +99,25 @@ class Unit(ABC):
     def kill(self):
         print(f'{self.name} 死亡')
         self.is_alive = False
+
+    def add_action_point(self):
+        self.action_point += 1
+        self.watch_action_point()
+
+    def reduce_action_point(self):
+        if self.action_point > 0:
+            self.action_point -= 1
+        else:
+            self.action_point = 0
+
+    def restore_action_point(self):
+        self.action_point = self.default_action_point
+
+    def clear_action_point(self):
+        self.action_point = 0
+
+    def round_pass(self):
+        pass
 
     @abc.abstractmethod
     def before_die(self):

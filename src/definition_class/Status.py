@@ -3,55 +3,58 @@ from abc import ABC, abstractmethod
 
 
 class EffectStatus(ABC):
-    def __init__(self, name: str, duration=0.0, is_permanent=False):
+    def __init__(self, name: str, duration=0, is_permanent=False):
         self._name = name
         self.start_time = datetime.datetime.now()
         self.is_permanent = is_permanent
         if is_permanent:
-            self.end_time = None
+            self.current_duration = 999
         else:
-            self.end_time = self.start_time + datetime.timedelta(seconds=duration)
+            self.current_duration = duration
+
+    def __repr__(self):
+        return self._name
 
     @property
     def name(self):
         return self._name
 
-    @property
-    def rd(self):
-        if self.is_permanent:
-            return 99999
-        elif datetime.datetime.now() > self.end_time:
-            return 0
-        else:
-            return (self.end_time - datetime.datetime.now()).seconds
-
-    def destroy(self):
-        self.beforeDestroy()
-        del self
+    def check_remain(self):
+        print(f'{self._name} 執行了check_remain')
+        self.reduce_duration()
+        if self.current_duration <= 0:
+            self.before_destroy()
+            self.current_duration = 0
+        return self.current_duration
 
     @abstractmethod
-    def getEffectText(self) -> str:
+    def get_effect_text(self) -> str:
         return ''
 
     @abstractmethod
-    def getEffect(self) -> dict:
+    def get_effect(self) -> dict:
         return {}
 
+    def reduce_duration(self):
+        self.current_duration -= 1
+
     @abstractmethod
-    def beforeDestroy(self):
+    def before_destroy(self):
         pass
 
 
-class EffectDizzy(EffectStatus):
+class EffectList:
+    def __init__(self, effect_list: list):
+        self.effect_list = effect_list
 
-    def __init__(self, duration=0.0, is_permanent=False):
-        super().__init__('Dizzy', duration, is_permanent)
+    def __repr__(self):
+        return self.effect_list
 
-    def getEffectText(self) -> str:
-        return '不能採取任何動作'
+    def add(self, effect: EffectStatus):
+        if isinstance(effect, EffectStatus):
+            self.effect_list.append(effect)
+        elif isinstance(effect, list):
+            self.effect_list.extend(effect)
 
-    def getEffect(self) -> dict:
-        return {'style': 'negative'}
-
-    def beforeDestroy(self):
-        pass
+    def check_remain(self):
+        self.effect_list = list(filter(lambda effect: effect.check_remain() != 0, self.effect_list))
