@@ -32,6 +32,8 @@ class Unit(ABC):
         self.name = info.name
         self.level = info.level
         self.race = info.race
+        self.hp_limit = info.hp_limit
+        self.sp_limit = info.sp_limit
         self.hp = info.hp_limit
         self.sp = info.sp_limit
         self.status = info.status
@@ -50,6 +52,16 @@ class Unit(ABC):
 
     def learn(self, skill: Skill):
         self.skills.append(skill)
+
+    def show_info(self):
+        print('-------------')
+        print(f'名稱:{self.name}')
+        print(f'等級:{self.level}')
+        print(f'HP:{self.hp} / {self.hp_limit}')
+        print(f'SP:{self.sp} / {self.sp_limit}')
+        print(f'攻擊力:{self.ad_attack}')
+        print(f'魔力:{self.ap_attack}')
+        print('-------------')
 
     def __getattr__(self, key):
         if self.is_stop:
@@ -87,16 +99,20 @@ class Unit(ABC):
     def value_change(self, value: int, colum=str):
         if colum == 'hp':
             self.hp += value
+            if self.hp > self.hp_limit:
+                self.hp = self.hp_limit
         elif colum == 'sp':
             self.sp += value
+            if self.sp > self.sp_limit:
+                self.sp = self.sp_limit
         elif colum == 'level':
             self.level += value
 
         if self.hp <= 0:
             self.before_die()
-            self.kill()
+            self.dead()
 
-    def kill(self):
+    def dead(self):
         print(f'{self.name} 死亡')
         self.is_alive = False
 
