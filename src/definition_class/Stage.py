@@ -1,9 +1,10 @@
+import random
 import time
 from abc import ABC, abstractmethod
 
 from UnitList import Hero
 from definition_class import Unit
-from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum
+from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum
 
 
 class Stage(ABC):
@@ -38,7 +39,7 @@ class Stage(ABC):
         pass
 
     @abstractmethod
-    def round_action(self, round_value: Round):
+    def round_action(self, round_value):
         pass
 
     @abstractmethod
@@ -146,8 +147,35 @@ class CreateHeroStage(Stage):
     def regular_round_cycle(self):
         pass
 
+    def export_hero(self):
+        return self.user_hero
+
     def check_command(self):
         pass
 
 
-test = CreateHeroStage()
+class WalkStage(Stage):
+    def __init__(self):
+        enum_name = 'WALK_ROUND_NAME'
+        super().__init__(default_round=Round(WalkRoundEnum.Explore, enum_name),
+                         end_round=Round(WalkRoundEnum.Explore, enum_name))
+
+    def regular_round_cycle(self):
+        pass
+
+    def round_action(self, round_value):
+        def movie_print(string, speed=0.1):
+            for index in range(1, len(string) + 1):
+                print(f'\r{string[0:index]}', end='')
+                time.sleep(speed)
+
+        if round_value == WalkRoundEnum.Explore.value:
+            random_int = random.randint(4, 9)
+            for i in range(0, random_int):
+                movie_print('探路中...')
+
+    def check_command(self):
+        pass
+
+
+test = WalkStage()

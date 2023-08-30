@@ -33,10 +33,6 @@ class FightRoundEnum(Enum):
     End = 4
 
 
-class CreateHeroRoundEnum(Enum):
-    Create = 0
-
-
 FIGHT_ROUND_NAME_CN = {
     0: '戰鬥前回合',
     1: '我方行動回合',
@@ -55,6 +51,20 @@ FIGHT_ROUND_NAME_EN = {
 
 }
 
+
+class CreateHeroRoundEnum(Enum):
+    Create = 0
+
+
 CREATE_HERO_ROUND_NAME_CN = {
     0: '創造英雄階段'
+}
+
+
+class WalkRoundEnum(Enum):
+    Explore = 0
+
+
+WALK_ROUND_NAME_CN = {
+    0: '探索階段'
 }
