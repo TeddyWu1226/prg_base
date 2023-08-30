@@ -47,9 +47,6 @@ class Unit(ABC):
         self.action_point = info.default_action_point
         self.is_stop = False
 
-    def __getitem__(self, key):
-        return self.info[key]
-
     def learn(self, skill: Skill):
         self.skills.append(skill)
 
