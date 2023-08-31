@@ -1,7 +1,9 @@
 import datetime
 import time
+from random import randint
 
-from UnitList import Slime, Hero
+from SkillList import FireBall
+from UnitList import Slime
 from definition_class.Stage import CreateHeroStage, WalkStage, FightStage, RestStage
 
 
@@ -13,6 +15,7 @@ class World:
         self.enemy = []
         self.command_text = ''
         self.current_stage = None
+        self.floor = 0
 
     def add_round_time(self):
         self.round_time += 1
@@ -23,26 +26,35 @@ class World:
     def start(self):
         self.current_stage = CreateHeroStage()
         self.players.append(self.current_stage.export_hero())
-        print(self.players)
+        time.sleep(2)
+        print('開始冒險')
+        time.sleep(2)
+        while True:
+            self.dungeon_loop()
 
     def dungeon_loop(self):
         """
         探路 > 戰鬥 / 休息
         :return:
         """
+        self.floor += 1
+        print(f'~~~ 第 {self.floor} 層 ~~~')
         self.current_stage = WalkStage()
         dice_value = self.current_stage.random_dice
-        if dice_value >= 4:
+        if (self.floor % 5 == 1) or dice_value >= 4:
+            self.create_enemy()
             self.current_stage = FightStage(self.players, self.enemy)
+            self.clear_enemy()
         else:
             self.current_stage = RestStage(self.players)
+        time.sleep(2)
 
+    def create_enemy(self):
+        enemy_level = self.floor // 3
+        for i in range(1, randint(2, 4)):
+            _enemy = Slime(level=randint((enemy_level - 1) if enemy_level > 1 else 1, enemy_level + 1),
+                           name=f'史萊姆{i}')
+            self.enemy.append(_enemy)
 
-# world = World()
-# world.start()
-
-if __name__ == '__main__':
-    hero = Hero(name='ted', _str=10, _agi=10, _int=10)
-    slime1 = Slime(hp_limit=100, level=1)
-    slime2 = Slime(hp_limit=100, level=2)
-    test_stage = FightStage([hero], [slime1, slime2])
+    def clear_enemy(self):
+        self.enemy = []

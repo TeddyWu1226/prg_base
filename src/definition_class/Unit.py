@@ -1,6 +1,7 @@
 import abc
 from abc import ABC
 from dataclasses import dataclass, field
+from typing import Union
 
 from definition_class import Skill
 from definition_class.Skill import ActiveSkill, NoneSkill
@@ -75,7 +76,7 @@ class Unit(ABC):
         if key not in self.skills:
             print(f'{self.name} 沒有 {key} 技能')
             return NoneSkill()
-        return self.action.working_skill(self.skills[self.skills.index(key)])
+        return self.working_skill(self.skills[self.skills.index(key)])
 
     def __str__(self):
         return self.name
@@ -90,16 +91,16 @@ class Unit(ABC):
         return self
 
     def working_skill(self, skill: ActiveSkill):
-        skill.setSpeller(self)
+        skill.set_speller(self)
         return skill
 
-    def setStatus(self, effect: EffectStatus):
+    def set_status(self, effect: Union[list, EffectStatus]):
         if isinstance(effect, list):
             self.status.extend(effect)
         elif isinstance(effect, EffectStatus):
             self.status.append(effect)
 
-    def value_change(self, value: int, colum=str):
+    def value_change(self, value: int, colum: str):
         if colum == 'hp':
             self.hp += value
             if self.hp > self.hp_limit:
@@ -129,8 +130,9 @@ class Unit(ABC):
             self.dead()
 
     def dead(self):
-        print(f'{self.name} 死亡')
+        print(f'{self.name} 死亡!')
         self.is_alive = False
+        self.is_stop = True
 
     def add_action_point(self):
         self.action_point += 1
@@ -151,18 +153,20 @@ class Unit(ABC):
     def round_pass(self):
         pass
 
-    def _attack(self, target):
+    def attack(self, target):
         damage = self.ad_attack
         print(f'{self.name} 攻擊 {target.name}!')
         target.attacked(attacker=self, damage=damage)
 
     def attacked(self, attacker, damage, _type='ad'):
-        cause_damage = damage - defend_curve(self.ad_df)
+        cause_damage = damage - defend_curve(self.ad_df if _type == 'ad' else self.ap_df)
         cause_damage = cause_damage if cause_damage > 0 else 0
         print(f'造成了 {cause_damage} 傷害!')
         self.value_change(-cause_damage, 'hp')
-        if not self.is_alive:
-            print(f'{attacker.name} 擊敗了 {self.name}')
+        if self.is_alive:
+            print(f'{self.name} 剩下 {self.hp} 生命')
+        else:
+            print(f'{attacker.name} 擊敗了 {self.name}!')
 
     @abc.abstractmethod
     def before_die(self):

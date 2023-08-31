@@ -1,3 +1,4 @@
+import collections
 import random
 from dataclasses import dataclass, field
 from enum import Enum
@@ -55,9 +56,9 @@ QUALITY_NAME_CN = {
 
 @dataclass
 class Equipment:
-    quality: QualityEnum
     part: PartEnum
     name: str
+    quality: QualityEnum = None
     description: str = ''
     ad: int = 0
     ap: int = 0
@@ -67,13 +68,42 @@ class Equipment:
     sp: int = 0
     crit_rate: float = 0
     dodge_rate: float = 0
+    equip_value: float = 0
+
+    def set_equip_value(self):
+        if self.quality is None:
+            special_add = 0
+            self.equip_value = (self.ad + self.ap) * 10 + (self.hp + self.sp) // 10 + self.ad_df + self.ap_df + (
+                    self.crit_rate + self.dodge_rate) * 1000
+            if self.crit_rate > 0.35:
+                special_add += 500
+            elif self.crit_rate > 0.25:
+                special_add += 250
+            if self.dodge_rate > 0.6:
+                special_add += 1000
+            elif self.dodge_rate > 0.4:
+                special_add += 500
+            self.equip_value += special_add
+            if self.equip_value >= 1000:
+                self.quality = QualityEnum.Perfect
+            elif self.equip_value >= 800:
+                self.quality = QualityEnum.Excellent
+            elif self.equip_value >= 500:
+                self.quality = QualityEnum.Good
+            elif self.equip_value >= 100:
+                self.quality = QualityEnum.Normal
+            else:
+                self.quality = QualityEnum.Old
 
     def show(self):
+        if not self.equip_value:
+            self.set_equip_value()
         des_name = f'{QUALITY_NAME_CN[self.quality.value]}的{self.name}\033[0m'
         print('----裝備敘述----')
         print(f'名稱: {des_name}')
         print(f'部位: {PART_NAME_CN[self.part.value]}')
         print(f'敘述: {self.description}')
+        print(f'數值: {self.equip_value}')
         if self.ad:
             print(f'攻擊力: +{self.ad}')
         if self.ap:
@@ -178,7 +208,7 @@ def create_random_equip():
         limit['sp'] = random.randint(0, 200)
         limit['ad_df'] = random.randint(0, 80)
         limit['ap_df'] = random.randint(0, 80)
-        limit['dodge_rate'] = random.uniform(0.0, 0.5)
+        limit['dodge_rate'] = random.uniform(0.0, 0.3)
 
     elif part == PartEnum.Accessory:
         accessory_list = ['項鍊', '墜飾', '徽章', '吊飾']
@@ -202,7 +232,7 @@ def create_random_equip():
 
         limit['hp'] = random.randint(0, 1500)
         limit['sp'] = random.randint(0, 1500)
-        limit['dodge_rate'] = random.uniform(0.0, 0.8)
+        limit['dodge_rate'] = random.uniform(0.2, 0.6)
 
     ad = random.randint(0, limit.get('ad'))
     ap = random.randint(0, limit.get('ap'))
@@ -212,22 +242,8 @@ def create_random_equip():
     ap_df = random.randint(0, limit.get('ap_df'))
     crit_rate = round(random.uniform(0, limit.get('crit_rate')), 2)
     dodge_rate = round(random.uniform(0, limit.get('dodge_rate')), 2)
-    equip_value = (ad + ap) + (hp + sp) // 10 + ad_df + ap_df + (crit_rate + dodge_rate) * 1000
-    print(f'價值: {equip_value}')
 
-    if equip_value >= 1500:
-        quality = QualityEnum.Perfect
-    elif equip_value >= 1000:
-        quality = QualityEnum.Excellent
-    elif equip_value >= 500:
-        quality = QualityEnum.Good
-    elif equip_value >= 100:
-        quality = QualityEnum.Normal
-    else:
-        quality = QualityEnum.Old
-
-    random_equip = Equipment(quality=quality,
-                             part=part,
+    random_equip = Equipment(part=part,
                              name=equip_name,
                              ad=ad,
                              ap=ap,
@@ -239,7 +255,16 @@ def create_random_equip():
                              dodge_rate=dodge_rate
                              )
 
-    random_equip.show()
+    # random_equip.show()
+    random_equip.set_equip_value()
+    return random_equip
 
 
-create_random_equip()
+items = []
+for i in range(0, 1000):
+    item = create_random_equip()
+    item.show()
+    items.append(item.quality)
+
+c = collections.Counter(items)
+print(c)

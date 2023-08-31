@@ -2,10 +2,10 @@ import random
 import time
 from abc import ABC, abstractmethod
 from typing import List
-
-from UnitList import Hero
+from definition_class.Hero import Hero
 from definition_class import Unit
 from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum, RestRoundEnum
+from definition_class.Skill import TargetType
 from self_package.func import movie_print
 
 
@@ -69,7 +69,15 @@ class Stage(ABC):
                 pass
         return self.command_text
 
-    def select_command(self, hint_text, selection=None, is_animation=False):
+    def select_command(self, hint_text, selection=None, is_animation=False, show_cancel=True):
+        """
+
+        :param hint_text:
+        :param selection:
+        :param is_animation:
+        :param show_cancel:
+        :return:
+        """
         if selection is None:
             selection = ['是', '否']
         if not isinstance(selection, list):
@@ -77,8 +85,10 @@ class Stage(ABC):
         selection_text = ''
         for index, select in enumerate(selection):
             selection_text += f'[{index + 1}] {select}    '
+        if show_cancel:
+            selection_text += f'[0] 取消'
         is_command_confirm = False
-        ans = None
+        selected_option = None
         while not is_command_confirm:
             try:
                 if is_animation:
@@ -89,13 +99,15 @@ class Stage(ABC):
                     print(selection_text)
                 self.command_text = input(f'你的選擇(輸入編號):')
                 time.sleep(0.1)
-                self.command_text = self.check_select_command(selection)
+                if show_cancel and self.command_text == '0':
+                    return selected_option
+                selected_option = self.check_select_command(selection)
                 self.check_command()
                 is_command_confirm = True
             except Exception as e:
                 print(e)
                 pass
-        return self.command_text
+        return selected_option
 
     @property
     def round_name(self):
@@ -121,24 +133,73 @@ class FightStage(Stage):
         if round_value == FightRoundEnum.Prepare.value:
             enemy_str_list = []
             for _enemy in self.enemy:
-                enemy_str_list.append(f'等級{_enemy.level}的{_enemy.name}')
-            print(f'出現了 {",".join(enemy_str_list)}')
+                enemy_str_list.append(f' 等級{_enemy.level} 的{_enemy.name}')
+            print(f'出現了!{",".join(enemy_str_list)}')
             time.sleep(1)
         elif round_value == FightRoundEnum.UserRound.value:
             self.user_action_operate()
         elif round_value == FightRoundEnum.EnemyRound.value:
-            pass
+            print('--------')
+            print(self.round_name)
+            time.sleep(1)
+            self.enemy_action_operate()
+            time.sleep(1)
         self.next_round()
 
     def user_action_operate(self):
         print('-----')
-        for player in self.players:
-            order = self.select_command(f'{player.name} 要做什麼?', ['攻擊', '技能', '防禦', '逃跑'])
-            if order == '攻擊':
-                target = self.select_command(f'選擇哪位目標?', list(filter(lambda unit: unit.is_alive, self.enemy)))
-                player._attack(target)
-            if len(list(filter(lambda unit: unit.is_alive, self.enemy))) == 0:
-                self.set_end_round()
+        for player in filter(lambda unit: not unit.is_stop, self.players):
+            is_active = False
+            while not is_active:
+                order = self.select_command(hint_text=f'{player.name} 要做什麼?',
+                                            selection=['攻擊', '技能', '查看'],
+                                            show_cancel=False)
+                if order == '攻擊':
+                    target = self.select_command(f'選擇哪位目標?', list(filter(lambda unit: unit.is_alive, self.enemy)))
+                    if not target:
+                        continue
+                    print('------')
+                    player.attack(target)
+
+                    is_active = True
+                elif order == '技能':
+                    selected_skill = self.select_command(f'施展哪一個技能?', player.skills)
+                    if not selected_skill:
+                        continue
+                    if selected_skill.skill_vm.target_type == TargetType.Single.value:
+                        target = self.select_command(f'選擇哪位目標?',
+                                                     list(filter(lambda unit: unit.is_alive, self.enemy)))
+                        if not target:
+                            continue
+                        exec(f'player.{selected_skill.code}(target)')
+                    elif selected_skill.skill_vm.target_type == TargetType.Multiple.value:
+                        exec(f'player.{selected_skill.code}(list(filter(lambda unit: unit.is_alive, self.enemy)))')
+                    else:
+                        exec(f'player.{selected_skill.code}()')
+                    is_active = True
+                elif order == '查看':
+                    target = self.select_command(f'查看哪一位資訊?',
+                                                 list(filter(lambda unit: unit.is_alive, self.enemy)))
+                    if target:
+                        target.show_info()
+                    continue
+                self.judge_is_to_end()
+
+    def enemy_action_operate(self):
+        for _enemy in filter(lambda unit: not unit.is_stop, self.enemy):
+            random_target = random.choice(list(filter(lambda unit: unit.is_alive, self.players)))
+            _enemy.attack(random_target)
+            self.judge_is_to_end()
+            print('')
+            time.sleep(1)
+
+    def judge_is_to_end(self):
+        if len(list(filter(lambda unit: unit.is_alive, self.players))) == 0:
+            print('你輸了!')
+            input('輸入任意鍵後關閉')
+            exit()
+        elif len(list(filter(lambda unit: unit.is_alive, self.enemy))) == 0:
+            self.set_end_round()
 
     def regular_round_cycle(self):
         if self.current_round == FightRoundEnum.EnemyRound.value:
@@ -225,7 +286,7 @@ class WalkStage(Stage):
         pass
 
     def round_action(self, round_value):
-        self.random_dice = random.randint(1, 6)
+        self.random_dice = random.randint(1, 4)
         if round_value == WalkRoundEnum.Explore.value:
             for i in range(3, 3 + self.random_dice):
                 movie_print('探路中...')
@@ -237,15 +298,18 @@ class WalkStage(Stage):
 class RestStage(Stage):
     def __init__(self, players: List[Unit]):
         enum_name = 'REST_ROUND_NAME'
+        self.players = players
         super().__init__(default_round=Round(RestRoundEnum.Rest, enum_name),
                          end_round=Round(RestRoundEnum.Rest, enum_name))
-        self.players = players
 
     def regular_round_cycle(self):
         pass
 
     def round_action(self, round_value):
         if round_value == RestRoundEnum.Rest.value:
+            print(self.round_name)
+            time.sleep(1)
+            print(f'我方獲得適當的休息，恢復了1/3的生命與魔力!')
             for player in self.players:
                 player.value_percent_change(0.33, 'hp')
                 player.value_percent_change(0.33, 'sp')

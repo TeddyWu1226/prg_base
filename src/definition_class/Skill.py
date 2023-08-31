@@ -33,10 +33,14 @@ class ActiveSkill:
         self.spell_wait = spell_wait
         self.skill_vm = skill_vm
 
-    def setSpeller(self, speller):
+    @property
+    def code(self):
+        return self.skill_vm.code
+
+    def set_speller(self, speller):
         self.speller = speller
 
-    def setTarget(self, target: list):
+    def set_target(self, target: list):
         if target:
             self.targets = list(filter(lambda unit: unit.is_alive, target))
         else:
@@ -67,17 +71,13 @@ class ActiveSkill:
         print(f'{self.speller.name} 施展了 {self.skill_vm.name}')
         for target in self.targets:
             if self.skill_vm.damage:
-                print(f'對 {target.name} 造成了 {self.skill_vm.damage} 傷害')
-                target.value_change(-self.skill_vm.damage, 'hp')
-                target.setStatus(self.skill_vm.extra_effect)
-                if target.is_alive:
-                    print(f'{target.name} 剩下 {target.hp} 生命')
+                target.set_status(self.skill_vm.extra_effect)
+                target.attacked(attacker=self.speller, damage=self.skill_vm.damage, _type='ap')
 
             if self.skill_vm.heal:
                 print(f'{target.name} 回復了 {self.skill_vm.heal} 生命')
+                target.set_status(self.skill_vm.extra_effect)
                 target.value_change(self.skill_vm.heal, 'hp')
-                target.setStatus(self.skill_vm.extra_effect)
-                print(f'{target.name} 當前有 {target.hp} 生命')
 
     def before_spell(self):
         if not self.speller:
@@ -97,7 +97,7 @@ class ActiveSkill:
             return
         if not self.before_spell():
             return
-        is_target_success = self.setTarget(list(args))
+        is_target_success = self.set_target(list(args))
         if is_target_success:
             is_spell_success = True
             if is_spell_success:
@@ -108,6 +108,9 @@ class ActiveSkill:
 
     def __repr__(self):
         return str(self.skill_vm.code)
+
+    def __str__(self):
+        return self.skill_vm.name
 
 
 class NoneSkill(ActiveSkill):
