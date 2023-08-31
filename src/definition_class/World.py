@@ -4,7 +4,7 @@ from random import randint
 
 from SkillList import FireBall
 from UnitList import Slime
-from definition_class.Stage import CreateHeroStage, WalkStage, FightStage, RestStage
+from definition_class.Stage import CreateHeroStage, WalkStage, FightStage, RestStage, ConnectStage
 
 
 class World:
@@ -27,7 +27,7 @@ class World:
         self.current_stage = CreateHeroStage()
         self.players.append(self.current_stage.export_hero())
         time.sleep(2)
-        print('開始冒險')
+        print('※※ 開始冒險 ※※')
         time.sleep(2)
         while True:
             self.dungeon_loop()
@@ -41,17 +41,22 @@ class World:
         print(f'~~~ 第 {self.floor} 層 ~~~')
         self.current_stage = WalkStage()
         dice_value = self.current_stage.random_dice
-        if (self.floor % 5 == 1) or dice_value >= 4:
+        if (self.floor % 5 == 1) or dice_value > 2:
             self.create_enemy()
             self.current_stage = FightStage(self.players, self.enemy)
             self.clear_enemy()
         else:
             self.current_stage = RestStage(self.players)
+        time.sleep(1)
+        self.current_stage = ConnectStage(self.players)
         time.sleep(2)
 
     def create_enemy(self):
         enemy_level = self.floor // 3
-        for i in range(1, randint(2, 4)):
+        num = randint(2, 4)
+        if self.floor == 1:
+            num = 2
+        for i in range(1, num):
             _enemy = Slime(level=randint((enemy_level - 1) if enemy_level > 1 else 1, enemy_level + 1),
                            name=f'史萊姆{i}')
             self.enemy.append(_enemy)

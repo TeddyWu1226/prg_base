@@ -56,7 +56,7 @@ class Unit(ABC):
 
     def show_info(self):
         print('-------------')
-        print(f'名稱:{self.name}')
+        print(f'名稱:{self.name} {"" if self.is_alive else "(死亡)"}')
         print(f'等級:{self.level}')
         print(f'HP:{self.hp} / {self.hp_limit}')
         print(f'SP:{self.sp} / {self.sp_limit}')
@@ -166,7 +166,10 @@ class Unit(ABC):
         if self.is_alive:
             print(f'{self.name} 剩下 {self.hp} 生命')
         else:
-            print(f'{attacker.name} 擊敗了 {self.name}!')
+            give_exp = int(round(self.level ** 1.2 * 75, 0)) + 25
+            print(f'{attacker.name} 擊敗了 {self.name}, 獲得了 {give_exp} 經驗!')
+            if callable(attacker.get_exp):
+                attacker.get_exp(give_exp)
 
     @abc.abstractmethod
     def before_die(self):

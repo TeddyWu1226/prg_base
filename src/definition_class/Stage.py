@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 from typing import List
 from definition_class.Hero import Hero
 from definition_class import Unit
-from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum, RestRoundEnum
+from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum, RestRoundEnum, \
+    ConnectRoundEnum
 from definition_class.Skill import TargetType
 from self_package.func import movie_print
 
@@ -138,9 +139,11 @@ class FightStage(Stage):
             time.sleep(1)
         elif round_value == FightRoundEnum.UserRound.value:
             self.user_action_operate()
+            time.sleep(1)
         elif round_value == FightRoundEnum.EnemyRound.value:
             print('--------')
             print(self.round_name)
+            print('')
             time.sleep(1)
             self.enemy_action_operate()
             time.sleep(1)
@@ -152,7 +155,7 @@ class FightStage(Stage):
             is_active = False
             while not is_active:
                 order = self.select_command(hint_text=f'{player.name} 要做什麼?',
-                                            selection=['攻擊', '技能', '查看'],
+                                            selection=['攻擊', '技能', '查看', '查看我方狀態'],
                                             show_cancel=False)
                 if order == '攻擊':
                     target = self.select_command(f'選擇哪位目標?', list(filter(lambda unit: unit.is_alive, self.enemy)))
@@ -183,6 +186,10 @@ class FightStage(Stage):
                     if target:
                         target.show_info()
                     continue
+                elif order == '查看我方狀態':
+                    target = self.select_command(f'查看哪一位資訊?', self.players)
+                    if target:
+                        target.show_info()
                 self.judge_is_to_end()
 
     def enemy_action_operate(self):
@@ -313,6 +320,35 @@ class RestStage(Stage):
             for player in self.players:
                 player.value_percent_change(0.33, 'hp')
                 player.value_percent_change(0.33, 'sp')
+
+    def check_command(self):
+        pass
+
+
+class ConnectStage(Stage):
+    def __init__(self, players):
+        enum_name = 'CONNECT_ROUND_NAME'
+        self.players = players
+        super().__init__(default_round=Round(ConnectRoundEnum.Connect, enum_name),
+                         end_round=Round(ConnectRoundEnum.Connect, enum_name))
+
+    def regular_round_cycle(self):
+        pass
+
+    def round_action(self, round_value):
+        if round_value == ConnectRoundEnum.Connect.value:
+            to_next = False
+            while not to_next:
+                order = self.select_command('是否前往下一層?', ['查看目前狀態', '前往下一層'], show_cancel=False)
+                if order == '查看目前狀態':
+                    target = self.select_command(f'查看哪一位資訊?', self.players)
+                    if target:
+                        target.show_info()
+                        if isinstance(target, Hero):
+                            print(target.exp)
+                            print('-----------')
+                elif order == '前往下一層':
+                    to_next = True
 
     def check_command(self):
         pass

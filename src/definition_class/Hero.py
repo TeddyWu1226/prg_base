@@ -29,7 +29,7 @@ class Hero(Unit):
 
     @property
     def exp(self):
-        return f'當前經驗條: {self._exp} / {self._exp_limit}'
+        return f'當前經驗值: {self._exp} / {self._exp_limit}'
 
     def observer_points(self):
         self.hp_limit = self._str * HERO_POINT_RATE['str']['hp'] + 100

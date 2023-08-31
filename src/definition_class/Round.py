@@ -77,3 +77,12 @@ class RestRoundEnum(Enum):
 REST_ROUND_NAME_CN = {
     0: '休息階段'
 }
+
+
+class ConnectRoundEnum(Enum):
+    Connect = 0
+
+
+CONNECT_ROUND_NAME_CN = {
+    0: '準備階段'
+}
