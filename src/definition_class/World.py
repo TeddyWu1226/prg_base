@@ -24,10 +24,11 @@ class World:
         self.date += datetime.timedelta(days=1)
 
     def start(self):
+        time.sleep(2)
         self.current_stage = CreateHeroStage()
         self.players.append(self.current_stage.export_hero())
         time.sleep(2)
-        print('※※ 開始冒險 ※※')
+        print('※※ 開始進入地宮 ※※')
         time.sleep(2)
         while True:
             self.dungeon_loop()
