@@ -1,7 +1,7 @@
 import datetime
 import time
 
-from definition_class.Stage import CreateHeroStage
+from definition_class.Stage import CreateHeroStage, WalkStage, FightStage, RestStage
 
 
 class World:
@@ -29,8 +29,12 @@ class World:
         探路 > 戰鬥 / 休息
         :return:
         """
-        pass
-
+        self.current_stage = WalkStage()
+        dice_value = self.current_stage.random_dice
+        if dice_value >= 4:
+            self.current_stage = FightStage(self.players, self.enemy)
+        else:
+            self.current_stage = RestStage(self.players)
 
 # world = World()
 # world.start()

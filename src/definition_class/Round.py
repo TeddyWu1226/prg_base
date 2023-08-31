@@ -68,3 +68,12 @@ class WalkRoundEnum(Enum):
 WALK_ROUND_NAME_CN = {
     0: '探索階段'
 }
+
+
+class RestRoundEnum(Enum):
+    Rest = 0
+
+
+REST_ROUND_NAME_CN = {
+    0: '休息階段'
+}

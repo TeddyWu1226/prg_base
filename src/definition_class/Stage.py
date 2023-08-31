@@ -1,10 +1,12 @@
 import random
 import time
 from abc import ABC, abstractmethod
+from typing import List
 
 from UnitList import Hero
 from definition_class import Unit
-from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum
+from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum, RestRoundEnum
+from self_package.func import movie_print
 
 
 class Stage(ABC):
@@ -72,7 +74,9 @@ class Stage(ABC):
 
 class FightStage(Stage):
 
-    def __init__(self):
+    def __init__(self, players, enemy):
+        self.players = players
+        self.enemy = enemy
         enum_name = 'FIGHT_ROUND_NAME'
         super().__init__(default_round=Round(FightRoundEnum.Prepare, enum_name),
                          end_round=Round(FightRoundEnum.End, enum_name))
@@ -156,6 +160,7 @@ class CreateHeroStage(Stage):
 
 class WalkStage(Stage):
     def __init__(self):
+        self.random_dice = 0
         enum_name = 'WALK_ROUND_NAME'
         super().__init__(default_round=Round(WalkRoundEnum.Explore, enum_name),
                          end_round=Round(WalkRoundEnum.Explore, enum_name))
@@ -164,18 +169,30 @@ class WalkStage(Stage):
         pass
 
     def round_action(self, round_value):
-        def movie_print(string, speed=0.1):
-            for index in range(1, len(string) + 1):
-                print(f'\r{string[0:index]}', end='')
-                time.sleep(speed)
-
+        self.random_dice = random.randint(1, 6)
         if round_value == WalkRoundEnum.Explore.value:
-            random_int = random.randint(4, 9)
-            for i in range(0, random_int):
+            for i in range(3, 3 + self.random_dice):
                 movie_print('探路中...')
 
     def check_command(self):
         pass
 
 
-test = WalkStage()
+class RestStage(Stage):
+    def __init__(self, players: List[Unit]):
+        enum_name = 'REST_ROUND_NAME'
+        super().__init__(default_round=Round(RestRoundEnum.Rest, enum_name),
+                         end_round=Round(RestRoundEnum.Rest, enum_name))
+        self.players = players
+
+    def regular_round_cycle(self):
+        pass
+
+    def round_action(self, round_value):
+        if round_value == RestRoundEnum.Rest.value:
+            for player in self.players:
+                player.value_percent_change(0.33, 'hp')
+                player.value_percent_change(0.33, 'sp')
+
+    def check_command(self):
+        pass

@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 
 
 class Observed(ABC):
-    def __init__(self, value):
+    def __init__(self, value, is_track_changes=False):
         self.value = value
         self.original_value = self.value
+        self.is_track_changes = is_track_changes
 
     def __eq__(self, other):
         return self.value == other
@@ -84,4 +85,13 @@ class ObVar(Observed):
         if not callable(self.event):
             return
         else:
-            return self.event(**self.param)
+            if self.is_track_changes:
+                try:
+                    return self.event(**self.param, change=(self.original_value, self.value))
+                except TypeError as e:
+                    if 'change' in str(e):
+                        raise TypeError('監聽觸發事件請配置 change 參數')
+                    else:
+                        raise TypeError(e)
+            else:
+                return self.event(**self.param)

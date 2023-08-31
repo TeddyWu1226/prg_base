@@ -109,6 +109,19 @@ class Unit(ABC):
             self.before_die()
             self.dead()
 
+    def value_percent_change(self, percent: float, colum=str):
+        if colum == 'hp':
+            self.hp += (percent * self.hp_limit)
+            if self.hp > self.hp_limit:
+                self.hp = self.hp_limit
+        elif colum == 'sp':
+            self.sp += (percent * self.sp_limit)
+            if self.sp > self.sp_limit:
+                self.sp = self.sp_limit
+        if self.hp <= 0:
+            self.before_die()
+            self.dead()
+
     def dead(self):
         print(f'{self.name} 死亡')
         self.is_alive = False
