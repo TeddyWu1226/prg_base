@@ -81,7 +81,7 @@ class Hero(Unit):
     def before_die(self):
         pass
 
-
-hero = Hero('ted', 10, 0, 0)
-hero.get_exp(10000)
-print(hero.show_info())
+#
+# hero = Hero('ted', 10, 0, 0)
+# hero.get_exp(10000)
+# print(hero.show_info())

@@ -26,6 +26,8 @@ class Stage(ABC):
 
     def next_round(self):
         if self.current_round == self.end_round:
+            print('----------')
+            print('戰鬥結束!')
             return
         if self.is_end:
             self.current_round = self.end_round
@@ -48,12 +50,46 @@ class Stage(ABC):
     def check_command(self):
         pass
 
+    def check_select_command(self, selection):
+        select_num = int(self.command_text) - 1
+        if select_num >= len(selection):
+            raise
+        return selection[select_num]
+
     def command(self, hint_text):
         is_command_confirm = False
         while not is_command_confirm:
             try:
                 self.command_text = input(f'{hint_text}:')
                 time.sleep(0.1)
+                self.check_command()
+                is_command_confirm = True
+            except Exception as e:
+                print(e)
+                pass
+        return self.command_text
+
+    def select_command(self, hint_text, selection=None, is_animation=False):
+        if selection is None:
+            selection = ['是', '否']
+        if not isinstance(selection, list):
+            raise TypeError(f'selection 只能為list ,不能為 {type(selection)} 類型')
+        selection_text = ''
+        for index, select in enumerate(selection):
+            selection_text += f'[{index + 1}] {select}    '
+        is_command_confirm = False
+        ans = None
+        while not is_command_confirm:
+            try:
+                if is_animation:
+                    movie_print(hint_text)
+                    movie_print(selection_text)
+                else:
+                    print(hint_text)
+                    print(selection_text)
+                self.command_text = input(f'你的選擇(輸入編號):')
+                time.sleep(0.1)
+                self.command_text = self.check_select_command(selection)
                 self.check_command()
                 is_command_confirm = True
             except Exception as e:
@@ -83,13 +119,33 @@ class FightStage(Stage):
 
     def round_action(self, round_value):
         if round_value == FightRoundEnum.Prepare.value:
-            self.command('')
+            enemy_str_list = []
+            for _enemy in self.enemy:
+                enemy_str_list.append(f'等級{_enemy.level}的{_enemy.name}')
+            print(f'出現了 {",".join(enemy_str_list)}')
+            time.sleep(1)
+        elif round_value == FightRoundEnum.UserRound.value:
+            self.user_action_operate()
+        elif round_value == FightRoundEnum.EnemyRound.value:
+            pass
+        self.next_round()
+
+    def user_action_operate(self):
+        print('-----')
+        for player in self.players:
+            order = self.select_command(f'{player.name} 要做什麼?', ['攻擊', '技能', '防禦', '逃跑'])
+            if order == '攻擊':
+                target = self.select_command(f'選擇哪位目標?', list(filter(lambda unit: unit.is_alive, self.enemy)))
+                player._attack(target)
+            if len(list(filter(lambda unit: unit.is_alive, self.enemy))) == 0:
+                self.set_end_round()
 
     def regular_round_cycle(self):
         if self.current_round == FightRoundEnum.EnemyRound.value:
             self.current_round = Round(FightRoundEnum.UserRound, 'FIGHT_ROUND_NAME')
         else:
             self.current_round += 1
+        self.round_action(self.current_round)
 
     def check_command(self):
         pass

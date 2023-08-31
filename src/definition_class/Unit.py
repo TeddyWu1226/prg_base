@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from definition_class import Skill
 from definition_class.Skill import ActiveSkill, NoneSkill
 from definition_class.Status import EffectStatus
+from definition_class.ValueCurve import defend_curve
 
 
 @dataclass
@@ -16,7 +17,8 @@ class UnitInfo:
     level: int = 1
     ad_attack: int = 0
     ap_attack: int = 0
-    defend: int = 0
+    ad_df: int = 0
+    ap_df: int = 0
     status: list = field(default_factory=list)
     skills: list = field(default_factory=list)
     passive: list = field(default_factory=list)
@@ -39,7 +41,8 @@ class Unit(ABC):
         self.status = info.status
         self.ad_attack = info.ad_attack
         self.ap_attack = info.ap_attack
-        self.defend = info.defend
+        self.ad_df = info.ad_df
+        self.ap_df = info.ap_df
         self.skills = info.skills
         self.passive = info.passive
         self.is_alive = True
@@ -73,6 +76,9 @@ class Unit(ABC):
             print(f'{self.name} 沒有 {key} 技能')
             return NoneSkill()
         return self.action.working_skill(self.skills[self.skills.index(key)])
+
+    def __str__(self):
+        return self.name
 
     @property
     def action(self):
@@ -144,6 +150,19 @@ class Unit(ABC):
 
     def round_pass(self):
         pass
+
+    def _attack(self, target):
+        damage = self.ad_attack
+        print(f'{self.name} 攻擊 {target.name}!')
+        target.attacked(attacker=self, damage=damage)
+
+    def attacked(self, attacker, damage, _type='ad'):
+        cause_damage = damage - defend_curve(self.ad_df)
+        cause_damage = cause_damage if cause_damage > 0 else 0
+        print(f'造成了 {cause_damage} 傷害!')
+        self.value_change(-cause_damage, 'hp')
+        if not self.is_alive:
+            print(f'{attacker.name} 擊敗了 {self.name}')
 
     @abc.abstractmethod
     def before_die(self):
