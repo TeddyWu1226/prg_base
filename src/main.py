@@ -10,5 +10,6 @@ if __name__ == '__main__':
     time.sleep(1)
     input('輸入任意字開始遊戲:')
     movie_print('準備中...')
+    print('')
     world = World()
     world.start()

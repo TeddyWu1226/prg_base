@@ -112,7 +112,7 @@ class Stage(ABC):
 
     @property
     def round_name(self):
-        return self.current_round.name
+        return f"~ {self.current_round.name} ~"
 
     def __repr__(self):
         return self.current_round
@@ -229,6 +229,7 @@ class CreateHeroStage(Stage):
     def round_action(self, round_value):
         if round_value == CreateHeroRoundEnum.Create.value:
             print(self.round_name)
+            print('')
             self.user_hero = self.create_hero()
 
     def create_hero(self) -> Unit:
@@ -256,6 +257,7 @@ class CreateHeroStage(Stage):
                     print('點數不足，請重新配置')
                     continue
                 current_hero = Hero(name=hero_name, _str=hero_str, _agi=hero_agi, _int=hero_int)
+                print('')
                 print('您即將創造')
                 print('-------------')
                 print(f'名稱:{current_hero.name}')
