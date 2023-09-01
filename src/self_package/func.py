@@ -1,5 +1,6 @@
 import os
 import time
+from enum import Enum
 
 
 def movie_print(string, speed=0.1):
@@ -11,3 +12,7 @@ def movie_print(string, speed=0.1):
 
 def cmd_clear():
     os.system('cls')
+
+
+def get_enum_values(enum: Enum):
+    return [member.value for member in enum]

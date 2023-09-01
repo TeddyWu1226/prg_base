@@ -1,4 +1,3 @@
-import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Union
@@ -18,20 +17,26 @@ class SkillVM:
     code: str  # 技能代號
     name: str  # 技能名稱
     text: str = None  # 技能敘述
-    damage: int = 0  # 傷害
-    heal: int = 0  # 治療
+    type: str = 'ap'  # 傷害類型
+    damage_base: int = 0  # 傷害
+    heal_base: int = 0  # 治療
+    upgrade_value: float = 0  # 技能等級提升時的數值加乘
+    sp_cost: int = 0  # 耗費法力
+    hp_cost: int = 0  # 耗費生命
+    upgrade_cost_value: int = 0  # 技能等級提升時的耗費加乘
+    limit_level: int = 3  # 技能等級上限
     extra_effect: list = field(default_factory=list)  # 附加效果
     target_type: int = TargetType.Single.value  # 技能目標數量
 
 
 class ActiveSkill:
-    def __init__(self, skill_vm: SkillVM, cost_sp: int = 0, cost_hp: int = 0, spell_wait=0):
+    def __init__(self, skill_vm: SkillVM, level: int = 0):
         self.targets: Union[List[Unit], Unit, None] = None
         self.speller: Unit = None
-        self.cost_hp = cost_hp
-        self.cost_sp = cost_sp
-        self.spell_wait = spell_wait
         self.skill_vm = skill_vm
+        self.level = level
+        self.cost_hp = self.skill_vm.hp_cost + self.skill_vm.upgrade_cost_value * level
+        self.cost_sp = self.skill_vm.sp_cost + self.skill_vm.upgrade_cost_value * level
 
     @property
     def code(self):
@@ -62,22 +67,28 @@ class ActiveSkill:
 
         return True
 
-    async def waiting(self):
-        await asyncio.sleep(self.spell_wait)
-        return True
-
     def spell(self):
         self.speller.value_change(-self.cost_sp, 'sp')
         print(f'{self.speller.name} 施展了 {self.skill_vm.name}')
         for target in self.targets:
-            if self.skill_vm.damage:
+            if self.skill_vm.damage_base:
+                damage = self.skill_vm.damage_base + self.skill_vm.upgrade_value * self.level
                 target.set_status(self.skill_vm.extra_effect)
-                target.attacked(attacker=self.speller, damage=self.skill_vm.damage, _type='ap')
+                target.attacked(attacker=self.speller, damage=damage, _type=self.skill_vm.type)
 
-            if self.skill_vm.heal:
-                print(f'{target.name} 回復了 {self.skill_vm.heal} 生命')
+            if self.skill_vm.heal_base:
+                heal = self.skill_vm.heal_base + self.skill_vm.upgrade_value * self.level
+                print(f'{target.name} 回復了 {heal} 生命')
                 target.set_status(self.skill_vm.extra_effect)
-                target.value_change(self.skill_vm.heal, 'hp')
+                target.value_change(heal, 'hp')
+
+    def show_info(self):
+        print('~~~~~~~~~')
+        print(f'{self.skill_vm.name} (等級{self.level})  消耗:{self.cost_sp}SP')
+        print(self.skill_vm.text.format(damage=self.skill_vm.damage_base + self.skill_vm.upgrade_value * self.level,
+                                        heal=self.skill_vm.damage_base + self.skill_vm.upgrade_value * self.level,
+                                        effects=','.join([effect.name for effect in self.skill_vm.extra_effect])))
+        print('~~~~~~~~~')
 
     def before_spell(self):
         if not self.speller:

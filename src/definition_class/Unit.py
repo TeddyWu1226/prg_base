@@ -62,6 +62,7 @@ class Unit(ABC):
         print(f'SP:{self.sp} / {self.sp_limit}')
         print(f'攻擊力:{self.ad_attack}')
         print(f'魔力:{self.ap_attack}')
+        print(f'當前狀態:{",".join([status.name for status in self.status]) if self.status else "無"}')
         print('-------------')
 
     def __getattr__(self, key):

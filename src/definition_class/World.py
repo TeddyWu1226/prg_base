@@ -2,7 +2,6 @@ import datetime
 import time
 from random import randint
 
-from SkillList import FireBall
 from UnitList import Slime
 from definition_class.Stage import CreateHeroStage, WalkStage, FightStage, RestStage, ConnectStage
 

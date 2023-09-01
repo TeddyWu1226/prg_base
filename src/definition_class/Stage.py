@@ -169,6 +169,7 @@ class FightStage(Stage):
                     selected_skill = self.select_command(f'施展哪一個技能?', player.skills)
                     if not selected_skill:
                         continue
+                    selected_skill.show_info()
                     if selected_skill.skill_vm.target_type == TargetType.Single.value:
                         target = self.select_command(f'選擇哪位目標?',
                                                      list(filter(lambda unit: unit.is_alive, self.enemy)))
