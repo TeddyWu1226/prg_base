@@ -3,6 +3,7 @@ from enum import Enum
 from typing import List, Union
 
 from definition_class import Unit
+from self_package import ObVar
 
 
 class TargetType(Enum):
@@ -32,15 +33,27 @@ class SkillVM:
 class ActiveSkill:
     def __init__(self, skill_vm: SkillVM, level: int = 0):
         self.targets: Union[List[Unit], Unit, None] = None
-        self.speller: Unit = None
+        self.speller: Union[Unit, None] = None
         self.skill_vm = skill_vm
-        self.level = level
-        self.cost_hp = self.skill_vm.hp_cost + self.skill_vm.upgrade_cost_value * level
-        self.cost_sp = self.skill_vm.sp_cost + self.skill_vm.upgrade_cost_value * level
+        self.level = ObVar(level, self.update_setting)
+        self.cost_hp = 0
+        self.cost_sp = 0
+        self.total_damage = 0
+        self.total_heal = 0
+        self.update_setting()
 
     @property
     def code(self):
         return self.skill_vm.code
+
+    def update_setting(self):
+        self.cost_hp = self.skill_vm.hp_cost + self.level * self.skill_vm.upgrade_cost_value
+        self.cost_sp = self.skill_vm.sp_cost + self.level * self.skill_vm.upgrade_cost_value
+        self.total_damage = self.skill_vm.damage_base + self.skill_vm.upgrade_value * int(self.level)
+        self.total_heal = self.skill_vm.damage_base + self.skill_vm.upgrade_value * int(self.level)
+
+    def upgrade(self, point=1):
+        self.level += point
 
     def set_speller(self, speller):
         self.speller = speller
@@ -72,12 +85,12 @@ class ActiveSkill:
         print(f'{self.speller.name} 施展了 {self.skill_vm.name}')
         for target in self.targets:
             if self.skill_vm.damage_base:
-                damage = self.skill_vm.damage_base + self.skill_vm.upgrade_value * self.level
+                damage = self.skill_vm.damage_base + self.skill_vm.upgrade_value * int(self.level)
                 target.set_status(self.skill_vm.extra_effect)
                 target.attacked(attacker=self.speller, damage=damage, _type=self.skill_vm.type)
 
             if self.skill_vm.heal_base:
-                heal = self.skill_vm.heal_base + self.skill_vm.upgrade_value * self.level
+                heal = int(self.skill_vm.heal_base + self.skill_vm.upgrade_value * int(self.level))
                 print(f'{target.name} 回復了 {heal} 生命')
                 target.set_status(self.skill_vm.extra_effect)
                 target.value_change(heal, 'hp')
@@ -85,9 +98,10 @@ class ActiveSkill:
     def show_info(self):
         print('~~~~~~~~~')
         print(f'{self.skill_vm.name} (等級{self.level})  消耗:{self.cost_sp}SP')
-        print(self.skill_vm.text.format(damage=self.skill_vm.damage_base + self.skill_vm.upgrade_value * self.level,
-                                        heal=self.skill_vm.damage_base + self.skill_vm.upgrade_value * self.level,
-                                        effects=','.join([effect.name for effect in self.skill_vm.extra_effect])))
+        print(
+            self.skill_vm.text.format(damage=self.total_damage,
+                                      heal=self.total_heal,
+                                      effects=','.join([effect.name for effect in self.skill_vm.extra_effect])))
         print('~~~~~~~~~')
 
     def before_spell(self):
@@ -126,5 +140,5 @@ class ActiveSkill:
 
 class NoneSkill(ActiveSkill):
     def __init__(self):
-        fireball_vm = SkillVM(code='Non', name='')
-        super().__init__(skill_vm=fireball_vm)
+        skill_vm = SkillVM(code='Non', name='')
+        super().__init__(skill_vm=skill_vm)

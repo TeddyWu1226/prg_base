@@ -138,16 +138,40 @@ class FightStage(Stage):
             print(f'出現了!{",".join(enemy_str_list)}')
             time.sleep(1)
         elif round_value == FightRoundEnum.UserRound.value:
+            # 玩家回合前觸發
+            self.check_unit_effect(self.players, 'before')
+            time.sleep(1)
+
+            # 玩家行動回合
             self.user_action_operate()
             time.sleep(1)
+
+            # 玩家回合後觸發
+            self.check_unit_effect(self.players, 'after')
+            time.sleep(1)
+
         elif round_value == FightRoundEnum.EnemyRound.value:
             print('--------')
             print(self.round_name)
             print('')
             time.sleep(1)
+            # 敵人回合前觸發
+            self.check_unit_effect(self.enemy, 'before')
+            time.sleep(1)
+            # 敵人行動回合
             self.enemy_action_operate()
             time.sleep(1)
+
+            # 敵人回合後觸發
+            self.check_unit_effect(self.enemy, 'after')
+            time.sleep(1)
+
         self.next_round()
+
+    @staticmethod
+    def check_unit_effect(uint_group: List[Unit], trigger_time='before'):
+        for unit in filter(lambda _unit: not _unit.is_stop and _unit.is_alive, uint_group):
+            exec(f'unit.{trigger_time}_round_check_status()')
 
     def user_action_operate(self):
         print('-----')

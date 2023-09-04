@@ -5,7 +5,7 @@ from typing import Union
 
 from definition_class import Skill
 from definition_class.Skill import ActiveSkill, NoneSkill
-from definition_class.Status import EffectStatus
+from definition_class.Effect import EffectStatus, EffectList
 from definition_class.ValueCurve import defend_curve
 
 
@@ -39,7 +39,7 @@ class Unit(ABC):
         self.sp_limit = info.sp_limit
         self.hp = info.hp_limit
         self.sp = info.sp_limit
-        self.status = info.status
+        self.status = EffectList(info.status)
         self.ad_attack = info.ad_attack
         self.ap_attack = info.ap_attack
         self.ad_df = info.ad_df
@@ -62,7 +62,7 @@ class Unit(ABC):
         print(f'SP:{self.sp} / {self.sp_limit}')
         print(f'攻擊力:{self.ad_attack}')
         print(f'魔力:{self.ap_attack}')
-        print(f'當前狀態:{",".join([status.name for status in self.status]) if self.status else "無"}')
+        print(f'當前狀態:{self.self.status}')
         print('-------------')
 
     def __getattr__(self, key):
@@ -96,10 +96,7 @@ class Unit(ABC):
         return skill
 
     def set_status(self, effect: Union[list, EffectStatus]):
-        if isinstance(effect, list):
-            self.status.extend(effect)
-        elif isinstance(effect, EffectStatus):
-            self.status.append(effect)
+        self.status.add(effect)
 
     def value_change(self, value: int, colum: str):
         if colum == 'hp':
@@ -175,3 +172,9 @@ class Unit(ABC):
     @abc.abstractmethod
     def before_die(self):
         pass
+
+    def before_round_check_status(self):
+        self.status.at_round_before_working()
+
+    def after_round_check_status(self):
+        self.status.at_round_after_working()
