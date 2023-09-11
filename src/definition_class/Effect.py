@@ -3,11 +3,13 @@ from abc import ABC, abstractmethod
 from typing import Union, List
 
 from definition_class import Unit
+from definition_class import Hero
 
 
 class EffectStatus(ABC):
-    def __init__(self, name: str, duration=0, is_permanent=False):
+    def __init__(self, name: str, duration=0, is_permanent=False, is_stacked=False):
         self._name = name
+        self.is_stacked = is_stacked
         self.start_time = datetime.datetime.now()
         self.is_permanent = is_permanent
         self.default_duration = duration
@@ -24,7 +26,7 @@ class EffectStatus(ABC):
     def set_owner(self, unit: Unit):
         self.owner = unit
 
-    def set_giver(self, unit: Unit = None):
+    def set_giver(self, unit: Union[Unit, Hero] = None):
         if unit:
             self.giver = unit
 
@@ -85,6 +87,11 @@ class EffectList:
             for _effect in effect:
                 _effect.set_owner(self.owner)
                 self.effect_list.append(_effect)
+
+    def _check_is_repeat_effect(self, effect):
+        print(effect)
+        print(set(self.effect_list))
+        pass
 
     def update_duration(self):
         for _effect in self.effect_list:

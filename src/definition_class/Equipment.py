@@ -1,10 +1,7 @@
-import collections
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-
 from colorama import init
-
 from self_package.func import get_enum_values
 
 init(autoreset=True)

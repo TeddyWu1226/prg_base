@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Union
 
-from definition_class import Unit
+from definition_class.Unit import Unit
 from self_package import ObVar
 
 
@@ -83,6 +83,9 @@ class ActiveSkill:
     def spell(self):
         self.speller.value_change(-self.cost_sp, 'sp')
         print(f'{self.speller.name} 施展了 {self.skill_vm.name}')
+        for _effect in self.skill_vm.extra_effect:
+            _effect.set_giver(self.speller)
+
         for target in self.targets:
             if self.skill_vm.damage_base:
                 damage = self.skill_vm.damage_base + self.skill_vm.upgrade_value * int(self.level)

@@ -3,9 +3,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Union
 
-from definition_class import Skill
-from definition_class.Skill import ActiveSkill, NoneSkill
-from definition_class.Effect import EffectStatus, EffectList
+from definition_class import ActiveSkill, NoneSkill, EffectStatus, EffectList
 from definition_class.ValueCurve import defend_curve
 
 
@@ -51,7 +49,7 @@ class Unit(ABC):
         self.action_point = info.default_action_point
         self.is_stop = False
 
-    def learn(self, skill: Skill):
+    def learn(self, skill):
         self.skills.append(skill)
 
     def show_info(self):
@@ -156,8 +154,11 @@ class Unit(ABC):
         print(f'{self.name} 攻擊 {target.name}!')
         target.attacked(attacker=self, damage=damage)
 
-    def attacked(self, attacker, damage, _type='ad'):
-        cause_damage = damage - defend_curve(self.ad_df if _type == 'ad' else self.ap_df)
+    def attacked(self, attacker, damage, _type='ad'):  # type=ad(物理),ap(魔法),dir(真實)
+        if _type != 'dir':
+            cause_damage = damage - defend_curve(self.ad_df if _type == 'ad' else self.ap_df)
+        else:
+            cause_damage = damage
         cause_damage = cause_damage if cause_damage > 0 else 0
         print(f'造成了 {cause_damage} 傷害!')
         self.value_change(-cause_damage, 'hp')
