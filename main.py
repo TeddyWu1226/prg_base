@@ -1,6 +1,6 @@
 import time
 
-from definition_class import World
+from definition_class.World import World
 from self_package.func import movie_print
 
 if __name__ == '__main__':

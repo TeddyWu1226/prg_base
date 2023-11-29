@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from definition_class import Unit, UnitInfo
+
+from definition_class.base_class import Unit, UnitInfo
 
 
 @dataclass

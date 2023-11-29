@@ -1,4 +1,4 @@
-from definition_class.Unit import UnitInfo, Unit
+from definition_class.base_class import UnitInfo, Unit
 from self_package import ObVar
 
 HERO_POINT_RATE = {

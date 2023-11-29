@@ -3,10 +3,9 @@ import time
 from abc import ABC, abstractmethod
 from typing import List
 from definition_class.Hero import Hero
-from definition_class import Unit
 from definition_class.Round import Round, FightRoundEnum, CreateHeroRoundEnum, WalkRoundEnum, RestRoundEnum, \
     ConnectRoundEnum
-from definition_class.Skill import TargetType
+from definition_class.base_class import Unit, TargetType
 from self_package.func import movie_print
 
 
